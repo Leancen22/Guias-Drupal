@@ -19,3 +19,7 @@ runners, drush, composer y ddev (este último para desarrollo).
 #  Paso a paso
 # 1) Estructura del proyecto
     Vamos primero a conocer la estructura del proyecto en el que implementaremos Docker.
+
+
+
+Desde el lado del servidor es necesario tirar composer update, esto actualizara el paquete...
