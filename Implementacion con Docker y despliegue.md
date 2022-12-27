@@ -17,4 +17,5 @@ No es necesario para poder seguir la guía pero es util tener conocimientos bás
 runners, drush, composer y ddev (este último para desarrollo).
 
 #  Paso a paso
-
+# 1) Estructura del proyecto
+    Vamos primero a conocer la estructura del proyecto en el que implementaremos Docker.
