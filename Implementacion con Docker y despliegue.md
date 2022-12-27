@@ -15,3 +15,6 @@ En caso de necesitar ver como realizar esta instalación consultar el resto del 
 
 No es necesario para poder seguir la guía pero es util tener conocimientos básicos de como funciona Docker, git,
 runners, drush, composer y ddev (este último para desarrollo).
+
+#  Paso a paso
+
