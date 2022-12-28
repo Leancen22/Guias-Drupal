@@ -23,7 +23,7 @@ En caso de estar trabajando con Portal Express o derivados puede consultar direc
 
 #  Paso a paso
 # 1) Estructura del proyecto
-    Vamos primero a conocer la estructura del proyecto en el que implementaremos Docker, para este proyecto como se menciono
+ Vamos primero a conocer la estructura del proyecto en el que implementaremos Docker, para este proyecto como se menciono
     se utilizara un perfil de instalacion donde se desarrollara, en caso de no contar con un perfil de instalacion para el
     desarrollo y desarrollar sobre la misma instalacion de drupal, puede ignorar los pasos relacionados al perfil.
     
