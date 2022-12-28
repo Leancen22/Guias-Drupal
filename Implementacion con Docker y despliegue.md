@@ -151,6 +151,8 @@ Por defecto, el archivo que GitLab detecta para CI/CD es el archivo **.gitlab-ci
 de CI/CD de un proyecto en https://gitlab.EXTENSION.com.uy/NOMBRE_GRUPO/NOMBRE_PROYECTO/-/settings/ci_cd y modificar a nuestro gusto,
 ahi tambien se encuentra la configuracion de runners y variables de entorno.
 
+Se puede ver tambien la documentacion oficial de GitLab https://docs.gitlab.com/ee/ci/yaml/
+
 Veamos la configuracion del archivo .gitlab-ci.yml para la instalacion de Drupal.
 
 ```
@@ -234,7 +236,60 @@ En este caso no tenemos configurado un archivo **.gitmodules** para poder inclui
 por lo que colocamos esta variable como none.
 
 ------------------------------------------------------------------------------------------------------------------------------
+```
+   docker-image:
+      image: docker:20-git
+      services:
+        - docker:20-dind
+      stage: build-image
+      script:
+        - ./.gitlab/build-image.sh
+      only:
+        - /^[0-9]+\.[0-9]+\.[0-9]+$/
+      tags:
+        - docker2
+```
 
+Como vimos anteriormente esta instruccion (docker-image), se ejecutara en el stage build-image, que en este caso es el unico
+que tenemos.
+Podemos ver que se usa una imagen base y un servicio:
+```
+  ...
+  image: docker:20-git
+  services:
+    - docker:20-dind
+  ...
+```
+
+Esto nos dice que imagen de docker usara para crear la imagen base, en este caso docker:20-git y el servicio que creara
+todo esto es docker:20-dind, donde dind corresponde a las siglas de docker-in-docker.
+
+Por ejemplo un servicio e imagen que se puede usar en caso de requerir de una consola de linux puede ser alpine.
+
+```
+   script:
+     - ./.gitlab/build-image.sh
+```
+Esto como vimos en el ejemplo de stages, aqui se escriben las lineas de scripts que se ejecutaran, por comodidad, se esta usando un archivo .sh para
+poder escribir el script, lo veremos al final.
+
+
+```
+   only:
+     - /^[0-9]+\.[0-9]+\.[0-9]+$/
+```
+En este caso permitimos que se ejecute para cualquier entrada posible, podriamos solo fijarla a una rama (master por ejemplo) o a un merge entre
+ramas, no es el caso.
+
+```
+   tags:
+     - docker2
+```
+Esto corresponde al runner, el cual es necesario como vimos anteriormente.
+
+------------------------------------------------------------------------------------------------------------------------------
+
+Ahora si veremos lo que crea la imagen de docker, el archivo build-image.sh
 
 # 5) Drupal y PHP para la imagen de la instalacion
 
