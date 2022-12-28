@@ -24,8 +24,33 @@ En caso de estar trabajando con Portal Express o derivados puede consultar direc
 #  Paso a paso
 # 1) Estructura del proyecto
  Vamos primero a conocer la estructura del proyecto en el que implementaremos Docker, para este proyecto como se menciono
-    se utilizara un perfil de instalacion donde se desarrollara, en caso de no contar con un perfil de instalacion para el
-    desarrollo y desarrollar sobre la misma instalacion de drupal, puede ignorar los pasos relacionados al perfil.
+ se utilizara un perfil de instalacion donde se desarrollara, en caso de no contar con un perfil de instalacion para el
+ desarrollo y desarrollar sobre la misma instalacion de drupal, puede ignorar los pasos relacionados al perfil.
+    
+ Empecemos con la instalacion de drupal, esta puede ser simplemente una instalacion normal de drupal, utilizando por ejemplo
+     
+     composer require drupal/recommended-project
+     
+Para este desarrollo usaremos ddev, por lo que en caso de no usarlo se deben adaptar los pasos.
+
+Empezaremos configurando nuestro entorno de trabajo
+
+     mkdir ProjectoConDocker
+     cd ProjectoConDocker
+     ddev config --project-type=drupal9 --docroot=web --create-docroot
+     ddev start
+     ddev ssh
+     composer require drupal/recommended-project
+     composer require drush/drush
+     composer install
+     
+Con esto ya tendremos una instalacion de Drupal lista para usar, tendremos la siguiente estructura de carpetas:
+
+     - .ddev
+     - web
+     - composer.json
+     - composer.lock
+     - vendor
     
 # 2) Repositorios de trabajo
 
@@ -50,12 +75,12 @@ En caso de estar trabajando con Portal Express o derivados puede consultar direc
 -------------------------------------------------------------------------------------------------------------
 
 # Pasos previos necesarios para el despliegue
-    El despliegue de la imagen que generamos con los pasos anteriores requiere tener previamente en donde
-    se vaya a instalar algunos preparativos, pasaremos a ver la configuracion necesaria.
+El despliegue de la imagen que generamos con los pasos anteriores requiere tener previamente en donde
+se vaya a instalar algunos preparativos, pasaremos a ver la configuracion necesaria.
     
 # Desarrollo y escalabilidad
-    En caso de tener el perfil, el desarrollo se hara sobre ese repositorio en concreto, y posteriormente
-    se actualizara el composer de la instalacion para generar la imagen actualizada, vamos a repasar esto y
-    la metodologia a seguir a la hora de querer escalar a otros proyectos.
+En caso de tener el perfil, el desarrollo se hara sobre ese repositorio en concreto, y posteriormente
+se actualizara el composer de la instalacion para generar la imagen actualizada, vamos a repasar esto y
+la metodologia a seguir a la hora de querer escalar a otros proyectos.
 
 Desde el lado del servidor es necesario tirar composer update, esto actualizara el paquete...
