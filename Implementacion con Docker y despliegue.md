@@ -26,7 +26,36 @@ En caso de estar trabajando con Portal Express o derivados puede consultar direc
     Vamos primero a conocer la estructura del proyecto en el que implementaremos Docker, para este proyecto como se menciono
     se utilizara un perfil de instalacion donde se desarrollara, en caso de no contar con un perfil de instalacion para el
     desarrollo y desarrollar sobre la misma instalacion de drupal, puede ignorar los pasos relacionados al perfil.
+    
+# 2) Repositorios de trabajo
 
+# 3) Runners
 
+# 4) Implementacion de CI/CD para la instalacion de Drupal
+
+# 5) Drupal y PHP para la imagen de la instalacion
+
+# 6) Dockerfile y gitlab-ci para la instalacion de Drupal
+
+# 7) Implementacion de CI/CD para el perfil de instalacion
+
+# 8) Implementar generacion de paquete composer
+
+# 9) Dockerfile y gitlab-ci para el perfil de instalacion
+
+# 10) Subir los cambios y generar las imagenes (perfil e instalacion)
+
+# 11) Despliegue usando la imagen
+
+-------------------------------------------------------------------------------------------------------------
+
+# Pasos previos necesarios para el despliegue
+    El despliegue de la imagen que generamos con los pasos anteriores requiere tener previamente en donde
+    se vaya a instalar algunos preparativos, pasaremos a ver la configuracion necesaria.
+    
+# Desarrollo y escalabilidad
+    En caso de tener el perfil, el desarrollo se hara sobre ese repositorio en concreto, y posteriormente
+    se actualizara el composer de la instalacion para generar la imagen actualizada, vamos a repasar esto y
+    la metodologia a seguir a la hora de querer escalar a otros proyectos.
 
 Desde el lado del servidor es necesario tirar composer update, esto actualizara el paquete...
