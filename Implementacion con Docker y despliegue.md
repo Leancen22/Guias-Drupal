@@ -8,10 +8,7 @@ mediante un paquete de composer.
 
 #  Importante
 
-Esta guía partirá desde un punto donde tengamos ya un sitio de Drupal instalado en nuestro equipo, 
-y en caso de necesitar un perfil de instalación, también esté desarrollado e implementado.
-
-En caso de necesitar ver como realizar esta instalación consultar el resto del material.
+En caso de necesitar ver como realizar la instalación de Drupal en profundidad consultar el resto del material.
 
 No es necesario para poder seguir la guía pero es util tener conocimientos básicos de como funciona Docker, git,
 runners, drush, composer y ddev (este último para desarrollo).
@@ -27,7 +24,7 @@ En caso de estar trabajando con Portal Express o derivados puede consultar direc
 # 1) Estructura del proyecto
 
  Vamos primero a conocer la estructura del proyecto en el que implementaremos Docker, para este proyecto como se menciono
- se utilizara un perfil de instalacion donde se desarrollara, en caso de no contar con un perfil de instalacion para el
+ se utilizara un perfil de instalacion donde se desarrollara, en caso de no contar con uno para el
  desarrollo y desarrollar sobre la misma instalacion de drupal, puede ignorar los pasos relacionados al perfil.
     
  Empecemos con la instalacion de drupal, esta puede ser simplemente una instalacion normal de drupal, utilizando por ejemplo
@@ -64,7 +61,7 @@ Se puede consultar la documentacion de este mismo repositorio donde se explica c
 Para este desarrollo es importante que a la hora de crear el repositorio este sea publico y tengamos configurada
 la posibilidad de implementar runners.
 
-Para trabajar usaremos GitLab, donde crearemos un repositorio con el nombre que queramos para alojar el projecto,
+Para trabajar usaremos GitLab, donde crearemos un repositorio con el nombre que queramos para alojar el proyecto,
 una vez creado se nos mostraran varias maneras de enlazar el repositorio creado con nuestro proyecto, vamos a usar una de estas maneras.
 
 En la carpeta que creamos anteriormente (ProjectoConDocker) usaremos el siguiente comando:
@@ -72,9 +69,8 @@ En la carpeta que creamos anteriormente (ProjectoConDocker) usaremos el siguient
     git init
     
 Esto nos creara una instancia de git (carpeta .git) que nos permitira enlazar a un repositorio remoto.
-Ahora toca decirle a donde debe mandar los cambios, esta sera la conexion con el repositorio, para esto
-nos vamos a nuestro repositorio creado y compiamos la ruta de clonado del mismo, puede ser por HTTP o SSH, por 
-simplicidad se puede usar HTTP, pero nosotros usaremos SSH
+Ahora toca "decirle" a donde debe mandar los cambios, esta sera la conexion con el repositorio, para esto
+nos vamos a nuestro repositorio creado y compiamos la ruta de clonado del mismo, puede ser por HTTP o SSH.
 
 Supongamos tenemos la siguiente ruta:
 
@@ -96,7 +92,7 @@ A partir de ahora podremos subir a este repositorio creado nuestros cambios:
     
 _IMPORTANTE_
 No todo se debe subir al repositorio, Github por ejemplo avisa cuando credenciales o informacion sensible es subida, GitLab no
-lo hace, por lo que tenemos que proibir la subida de esta informacion, ademas de esto, tampoco deben subirse archivos o carpetas que
+lo hace, por lo que tenemos que prohibir la subida de esta informacion, ademas de esto, tampoco deben subirse archivos o carpetas que
 sean generadas por drupal automaticamente, por ejemplo modulos, el core, etc.
 
 Tambien en caso de querer desarrollar en un perfil aparte, no se debe subir junto con la instalacion.
@@ -489,13 +485,309 @@ Copia el resto de informacion del repositorio a la imagen.
 
 # 6) Drupal y PHP para la imagen de la instalacion
 
+
+
 # 7) Implementacion de CI/CD para el perfil de instalacion
+Tal como hicimos con la instalacion de Drupal, debemos crear el archivo **.gitlab-ci.yml** e indicar las instrucciones que 
+debe seguir gitlab cuando se suba un nuevo tag, este es el contenido que se usa en este caso.
+
+```
+    stages:
+      - build
+
+    variables:
+      GIT_SUBMODULE_STRATEGY: none
+
+    build_composer:
+      stage: build
+      image: alpine/curl
+      script:
+        - |-
+            TARGET=tag
+            if [ "${CI_COMMIT_REF_NAME}" = "master" ]; then
+              TARGET=branch
+            fi
+
+            curl -k --show-error --fail --header "Job-Token: $CI_JOB_TOKEN" \
+                 --data ${TARGET}=${CI_COMMIT_REF_NAME} \
+                 "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/composer"
+      only:
+        - /^[0-9]+\.[0-9]+\.[0-9]+$/
+      tags:
+        - docker2
+```
+Recordemos que la idea con el perfil es generarlo como un paquete de composer que se detectara cuando se haga un update en nuestro sitio,
+por lo que lo que estamos haciendo en el codigo de arriba es establecer la ruta a donde se mandara el paquete, recordar es necesario tener
+habilitada la posibilidad de crear paquetes de composer en nuestro repositorio.
+
+Ya vimos que representaban algunas de las variables que se ven en el codigo, veremos las dos que no vimos.
+**$CI_API_V4_URL** URL de la api v4 de GitLab, por ejemplo https://gitlab.EXTENSION.com.uy/api/v4
+**$CI_PROJECT_ID** Id del proyecto en el que estamos
+
+Los paquetes se van a ir creando en https://gitlab.EXTENSION.com.uy/NOMBRE_GRUPO/NOMBRE_PROYECTO/-/packages
 
 # 8) Implementar generacion de paquete composer
+Para que se genere el paquete de composer es necesario especificar un archivo composer que indique los parametros que se
+guardaran en estos paquetes.
+Hay varias formas de hacer esto, pero veamos solo una de ellas.
+
+En la ruta raiz del perfil de instalacion ejecutamos:
+    
+    composer init
+    
+Esto nos comenzara a preguntar alguas cosas, podemos dejarlo por dejecto.
+Recordemos que el nombre que asignemos a este composer.json que se genera sera el nombre del paquete composer y
+con lo que se identificara en el composer de la instalacion de Drupal.
+
+```
+{
+    "name": "nombre/paquete",  <--- Este es el nombre que representa el paquete
+    "description": "Profile base for generic portals.",
+    "type": "drupal-profile",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Leandro Mesa",
+            "email": "leandro.mesa@isaportal.uy"
+        }
+    ],
+
+```
+
+Esto depende siempre del proyecto, se podria aregar un parametro require y colocar los modulos necesarios a instalar,
+parches y demas.
+
+Ejemplo:
+
+```
+     "require": {
+        "cweagans/composer-patches": "^1.7",
+        "drupal/admin_toolbar": "3.0.3",
+        "drupal/autosave_form": "^1.2",
+        "drupal/back_to_top": "^1.1",
+        "drupal/block_content_permissions": "^1.10",
+        "drupal/blockgroup": "^1.5",
+        "drupal/bootstrap_layout_builder": "^2.0",
+        "drupal/bootstrap_styles": "^1.0",
+        "drupal/captcha": "^1.1",
+        "drupal/checklistapi": "^2.0",
+        "drupal/ckeditor_scayt": "^1.1",
+        "drupal/ckwordcount": "^1.1",
+        "drupal/config_split": "^2",
+        "drupal/config_update": "^1.7",
+        "drupal/console": "~1.0",
+        "drupal/contact_block": "^1.5",
+        "drupal/ctools": "^3.4",
+        "drupal/default_content": "^2.0",
+        "drupal/devel": "4.1.1",
+        "drupal/easy_breadcrumb": "2.0.1",
+        "drupal/editor_advanced_link": "2.0.0",
+        "drupal/empty_page": "^3.0",
+        "drupal/entity_hierarchy": "^3.0",
+        "drupal/entity_reference_hierarchy": "^1.0@beta",
+        "drupal/entity_reference_revisions": "^1.8",
+        "drupal/features": "^3.11",
+        "drupal/file_entity": "^2.0@beta",
+        "drupal/fixed_block_content": "^1.1",
+        "drupal/google_analytics": "4.0.0",
+        "drupal/group": "^1.4",
+        "drupal/health_check_url": "3.1",
+        "drupal/hreflang": "^1.3",
+        "drupal/imce": "^2.2",
+        "drupal/key_value_field": "^1.2",
+        "drupal/layout_builder_restrictions": "^2.8",
+        "drupal/linkit": "^6.0@beta",
+        "drupal/magnific_popup": "^1.5",
+        "drupal/menu_block": "^1.7",
+        "drupal/menu_trail_by_path": "^1.3",
+        "drupal/metatag": "^1.14",
+        "drupal/metatag_routes": "^1.2",
+        "drupal/notification": "^1.1",
+        "drupal/openid_connect": "^1.0@RC",
+        "drupal/paragraphs": "^1.12",
+        "drupal/pathauto": "^1.8",
+        "drupal/permissions_filter": "^1.1",
+        "drupal/recaptcha": "^3.0",
+        "drupal/recaptcha_v3": "^1.3",
+        "drupal/redirect": "^1.6",
+        "drupal/search404": "2.0.0",
+        "drupal/search_api": "^1.17",
+        "drupal/search_api_page": "^1.0@beta",
+        "drupal/seo_checklist": "5.1.0",
+        "drupal/simple_gmap": "^3.0",
+        "drupal/simple_sitemap": "^4.0@alpha",
+        "drupal/sitemap": "^2",
+        "drupal/smart_trim": "^1.3",
+        "drupal/smtp": "^1.0",
+        "drupal/social_media": "^1.9@RC",
+        "drupal/subpathauto": "^1.1",
+        "drupal/svg_image": "^1.14",
+        "drupal/textarea_widget_for_text": "^1.2",
+        "drupal/time_picker": "^5.3",
+        "drupal/toastr": "^1.0",
+        "drupal/token": "^1.7",
+        "drupal/tvi": "^1.0@RC",
+        "drupal/twig_field_value": "^2.0",
+        "drupal/twig_tweak": "^3.1",
+        "drupal/twigsuggest": "^1.0@beta",
+        "drupal/w3c_validator": "^1.4",
+        "drupal/webform": "^6.1@beta",
+        "drupal/yoast_seo": "^2",
+        "drush/drush": "^10.6",
+        "drupal/iframe": "^2.12",
+        "drupal/views_block_placement_exposed_form_defaults": "^1.0@RC",
+        "drupal/maxlength": "^2.0@RC",
+        "drupal/scheduler": "^2.0@alpha",
+        "drupal/extlink": "^1.6",
+        "drupal/material_icons": "^1.0",
+        "drupal/multivalue_form_element": "^1.0@beta"
+     },
+     "extra": {
+         "enable-patching": true,
+         "patches": {
+             "drupal/default_content": {
+                 "Add a Normalizer and Denormalizer to support Layout Builder": "https://www.drupal.org/files/issues/2020-08-24/default_content-add-normalizer-denormalizer-for-layout-builder-3160146-25.patch"
+             },
+             "drupal/time_picker":{
+                 "Console error when using time range picker": "https://www.drupal.org/files/issues/2020-05-05/console-error-fix.patch"
+             },
+             "drupal/views_block_placement_exposed_form_defaults":{
+                 "All results displayed in block when single exposed filter value selected": "https://www.drupal.org/files/issues/2021-10-21/views_block_placement_exposed_form_defaults-filter_displays_all_results-3244432-4.patch"
+             }
+         }
+     }
+
+```
 
 # 9) Dockerfile para el perfil de instalacion
+Como hicimos con el Dockerfile de la instalacion, este sera el archivo que busque Docker para armar la imagen.
+Depende de cada perfil y proyecto el contenido del Dockerfile, pero podemos ver algunos patrones generales.
+
+```
+FROM gitlab.isaltda.com.uy:5005/portal/drupal/stable
+
+ARG GITLAB_TOKEN
+ARG GITLAB_DOMAIN
+ARG GITLAB_USER
+ARG GITLAB_TOKEN
+ARG GROUP_ID
+ARG APP_PACKAGIST
+ARG API_V4_URL
+ARG GITLAB_ISA_USER
+ARG GITLAB_ISA_TOKEN
+
+RUN composer config --global gitlab-domains ${GITLAB_DOMAIN} && \
+    composer config --global gitlab-token.${GITLAB_DOMAIN} ${GITLAB_TOKEN} && \
+    composer create-project drupal/recommended-project:^9 ./ && \
+    composer config repositories.${GITLAB_DOMAIN}/${GROUP_ID} \
+     '{"type": "composer", "url": "'${API_V4_URL}'/group/'${GROUP_ID}'/-/packages/composer/packages.json"}' && \
+    composer config --json extra.enable-patching true && \
+    composer config minimum-stability dev && \
+    composer require "${APP_PACKAGIST}" --no-interaction && \
+    composer update --lock
+```
+
+Puede ser que se quiera agregar un tema que se encuentre en otro repositorio o modulos, etc, todo eso se puede hacer en el RUN.
 
 # 10) Subir los cambios y generar las imagenes (perfil e instalacion)
+Ya hemos ido viendo como se suben los cambios a ambios repositorios, y que estas imagenes que hemos ido creando se 
+crear una vez subimos los tags, vamos a ver un ejemplo de como se implementa el perfil de instalacion para generar la imagen 
+actualizada con los cambios que desarrollemos.
+
+recordemos que el paquete que creamos como ejemplo se llama nombre/paquete, en este punto es necesario indicarle al composer.json
+de la instalacion de donde tiene que obtener la informacion, osea el repositorio, donde alojamos el perfil.
+
+En nuestro **composer.json**, antes de los require, colocamos lo siguiente:
+
+```
+"repositories": {
+    "gitlab.EXTENSION.com.uy/ID_DEL_GRUPO": {
+        "type": "composer",
+        "url": "https://gitlab.EXTENSION.com.uy/api/v4/group/ID_DEL_GRUPO/-/packages/composer/packages.json",
+        "options": {
+            "ssl": {
+                "verify_peer": false,
+                "allow_self_signed": true,
+                "secure-http": false
+            }
+        }
+    },
+    "0": {
+        "type": "composer",
+        "url": "https://packages.drupal.org/8"
+    }
+}
+```
+
+La variable ID_DEL_GRUPO se puede obtener viendo el id del grupo donde tenemos el proyecto del perfil, esto verifica el paquete composer que
+creamos anteriormente y desactiva algunas opciones de seguridad.
+
+Posterior a esto podemos en los require agregar el paquete en este caso:
+
+```
+...
+"require": {
+    ...
+    "nombre/paquete": "^1",
+    ...
+...
+```
+Con esto ya estamos detectando el paquete, la version "^1", corresponde al major del tag, en caso de que nuestros
+tag pasen a 2.x.x, sera necesario cambiarla manuealmente por "^2", para cualquier valor de 1.x.x podemos usar esa
+configuracion.
+
+Sera necesario reconstruir el composer.lock con estas nuevas configuraciones agregadas, para esto lo eliminamos
+y ejecutamos **composer update** nuevamente, un ejemplo de composer.lock actualizado podria tener lineas similares
+a estas:
+
+```
+{
+     "name": "nombre/paquete",
+     "version": TAG_VERSION,
+     "source": {
+         "type": "git",
+         "url": "https://gitlab.EXTENSION.com.uy/NOMBRE_GRUPO/NOMBRE_PROYECTO.git",
+         "reference": "8d46a79300522974702bfdd4813528006499cb3c"
+     },
+     "dist": {
+         "type": "zip",
+         "url": "https://gitlab.EXTENSION.com.uy/api/v4/projects/810/packages/composer/archives/XXX/isa.zip?sha=8d46a79300522974702bfdd4813528006499cb3c",
+         "reference": "8d46a79300522974702bfdd4813528006499cb3c",
+         "shasum": ""
+     },
+     "require": {
+     ...
+```
+Esta configuracion la genera composer.lock automaticamente.
+
+**IMPORTANTE**
+Es necesario crear una imagen para cada una, primero el perfil y luego la instalacion.
+Veamos un ejemplo, aunque se explayara un poco en la seccion de desarrollo.
+
+```
+**Perfil de instalacion**
+
+git add . (todos los cambios que se deseen)
+git commit -m "ejemplo de subida"
+git push -u origin master
+git tag 1.0.1
+git push origin 1.0.1
+
+Se crea el paquete de composer
+
+Para impactar los cambios en la imagen es necesario actualizar el paquete de composer del perfil, antes de subir
+los cambios y el tag de la instalacion es necesario un composer update.
+
+**Instalacion de Drupal**
+
+git add . (todos los cambios que se deseen)
+git commit -m "ejemplo de subida"
+git push -u origin master
+git tag 1.0.0
+git push origin 1.0.0
+```
+
+Explayaremos en la seccion de desarrollo y escalabilidad.
 
 # 11) Despliegue usando la imagen
 
