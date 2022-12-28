@@ -40,7 +40,7 @@ Empezaremos configurando nuestro entorno de trabajo
      ddev config --project-type=drupal9 --docroot=web --create-docroot
      ddev start
      ddev ssh
-     composer require drupal/recommended-project
+     composer require drupal/recommended-project ProjectoConDocker
      composer require drush/drush
      composer install
      
@@ -57,6 +57,38 @@ En caso de usar un perfil de instalacion este se alojara en /web/profiles/contri
 Se puede consultar la documentacion de este mismo repositorio donde se explica como crear un perfil de instalacion o distribucion.
     
 # 2) Repositorios de trabajo
+
+Para trabajar usaremos GitLab, donde crearemos un repositorio con el nombre que queramos para alojar el projecto,
+una vez creado se nos mostraran varias maneras de enlazar el repositorio creado con nuestro proyecto, vamos a usar una de estas maneras:
+
+En la carpeta que creamos anteriormente (ProjectoConDocker) usaremos el siguiente comando:
+   
+    git init
+    
+Esto nos creara una instancia de git (carpeta .git) que nos permitira enlazar a un repositorio remoto.
+Ahora toca decirle a donde debe mandar los cambios, esta sera la conexion con el repositorio, para esto
+nos vamos a nuestro repositorio creado y compiamos la ruta de clonado del mismo, puede ser por HTTP o SSH, por 
+simplicidad se puede usar HTTP, pero nosotros usaremos SSH
+
+Supongamos tenemos la siguiente ruta:
+
+    https://gitlab.isaltda.com.uy/portal/projectocondocker.git
+    
+Ahora solo deberiamos hacer lo siguiente (dentro de ProjectoConDocker):
+
+    git remote add origin git@gitlab.isaltda.com.uy:portal/projectocondocker.git
+    
+En caso de usar HTTP:
+
+    git remote add origin https://gitlab.isaltda.com.uy/portal/projectocondocker.git
+
+A partir de ahora podremos subir a este repositorio creado nuestros cambios:
+   
+    git add .
+    git commit -m "Primer commit del projecto"
+    git push -u origin master
+    
+_IMPORTANTE_
 
 # 3) Runners
 
