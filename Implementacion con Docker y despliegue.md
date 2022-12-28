@@ -153,7 +153,8 @@ ahi tambien se encuentra la configuracion de runners y variables de entorno.
 
 Se puede ver tambien la documentacion oficial de GitLab https://docs.gitlab.com/ee/ci/yaml/
 
-Veamos la configuracion del archivo .gitlab-ci.yml para la instalacion de Drupal.
+Veamos la configuracion del archivo .gitlab-ci.yml para la instalacion de Drupal, este archivo lo que hara sera prepararnos todo
+para cuando integremos el Dockerfile.
 
 ```
     stages:
@@ -289,11 +290,122 @@ Esto corresponde al runner, el cual es necesario como vimos anteriormente.
 
 ------------------------------------------------------------------------------------------------------------------------------
 
-Ahora si veremos lo que crea la imagen de docker, el archivo build-image.sh
+Ahora si veremos lo que prepara el escenario para la imagen de docker, el archivo build-image.sh:
+
+Este archivo prepara la generacion de las imagenes basandose en el tag donde se pushean los commits, veremos esto en el analisis.
+
+Las variables de entorno que se ven en el codigo son globales, puede verse mas de ellas en el siguiente link:
+https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
+
+Si queremos ver que contiene cada etiqueta podemos ejecutar el .gitlab-ci.yml haciendo un echo de cada una.
+
+```
+   docker login ${CI_REGISTRY} -u ${CI_REGISTRY_USER} -p $CI_JOB_TOKEN
+
+   VERSION=${CI_COMMIT_REF_NAME}
+   TAG="latest"
+
+   if [[ $CI_COMMIT_REF_NAME =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+     VERSION="stable"
+     TAG=${CI_COMMIT_REF_NAME}
+   fi
+
+   IMAGE_TAG="${CI_REGISTRY_IMAGE}/${VERSION}:${TAG}"
+
+   echo "========>> Build image <<=================="
+   docker build -t "${IMAGE_TAG}" \
+   --build-arg GITLAB_TOKEN=${PERSONAL_ACCESS_TOKEN} \
+   --build-arg GITLAB_DOMAIN=${GITLAB_DOMAIN} . || { echo "Build image filed" ; exit 1; }
+
+
+   echo "========>> Push image <<=================="
+   docker push "${IMAGE_TAG}" || { echo "Push image filed" ; exit 1; }
+
+
+   if [ "${VERSION}" = "stable" ]; then
+     echo "========>> Push latest image <<=================="
+     IMAGE_TAG_LATEST="${CI_REGISTRY_IMAGE}/${VERSION}:latest"
+     docker tag ${IMAGE_TAG} ${IMAGE_TAG_LATEST}
+     docker push "${IMAGE_TAG_LATEST}"
+   fi
+```
+Analicemos como hicimos antes linea por linea.
+
+    docker login ${CI_REGISTRY} -u ${CI_REGISTRY_USER} -p $CI_JOB_TOKEN
+
+Esto inicia sesion en un registro de Docker para GitLab, en Github se realiza de forma similar. 
+
+**${CI_REGISTRY}** Es la direccion del registro de contenedores de GitLab, es importante previamente ver
+si tenemos esto activo
+**${CI_REGISTRY_USER}** Es el nombre del usuario que tiene habilitado enviar los contenedores, en este caso
+es necesario previamente ver que nuestro proyecto tenga habilitada esta posibilidad.
+**$CI_JOB_TOKEN** Esto representa lo mismo que **$CI_REGISTRY_PASSWORD** lo cual es la credencial de acceso.
+
+------------------------------------------------------------------------------------------------------------------------------
+
+```
+   VERSION=${CI_COMMIT_REF_NAME}
+   TAG="latest"
+
+   if [[ $CI_COMMIT_REF_NAME =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+     VERSION="stable"
+     TAG=${CI_COMMIT_REF_NAME}
+   fi
+
+   IMAGE_TAG="${CI_REGISTRY_IMAGE}/${VERSION}:${TAG}"
+```
+
+Esta parte del codigo es la que toma la etiqueta con la que subiremos nuestros cambios al repositorio y 
+prepara la direccion donde se construira y pusheara con Docker, le dice a Docker donde guardar la imagen que creara.
+
+**${CI_COMMIT_REF_NAME}** Nombre de la rama o etiqueta que se detecta, veamos un ejemplo subiendo algo al repositorio:
+   
+    git add .
+    git commit -m "Ejemplo para ver los tags"
+    git push -u origin master
+    
+    git tag 1.0.0 ---> Este es el numero del tag, es incremental y unico.
+    git push origin 1.0.0  ---> Esto pushea a ese tag el ultimo push realizado a una rama.
+    
+En este punto la variable global tendra por valor 1.0.0.
+
+    TAG="latest"
+
+Esto simplemente es una declaracion de variable, es una forma de decirle a GitLab la version que debe tomar, en este caso
+se setea que sea "latest".
+
+    if [[ $CI_COMMIT_REF_NAME =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+      VERSION="stable"
+      TAG=${CI_COMMIT_REF_NAME}
+    fi
+
+Este if tiene una comparacion utilizando el operador de expresiones =~, que devuelve 0 o 1 dependiendo si el lado izquierdo coincide con
+la expresion del lado derecho entra al if, en este caso la expresion corresponde a secuencia exclusivamente numericas, correspondientes a un 
+tag numerico y no a una rama, por lo que al entrar define el tag con el ultimo valor seteado por nosotros al crearlo, en el ejemplo 1.0.0.
+Se define por conveniencia la variable version en stable, lo que se usa para definir una version en correcto funcionamiento.
+
+
+    IMAGE_TAG="${CI_REGISTRY_IMAGE}/${VERSION}:${TAG}"
+
+Con las variables creadas definimos una nueva variable, que sera usada para definir la ruta del contenedor.
+Un ejemplo seria el siguiente, para valor de IMAGE_TAG:
+     
+     gitlab.EXTENSION.com.uy:5005/NOMBRE_GRUPO/NOMBRE_PROYECTO/stable:1.0.0
+
+Esto se puede ver en https://gitlab.EXTENSION.com.uy/NOMBRE_GRUPO/NOMBRE_PROYECTO/container_registry una vez que generemos
+el tag y se ejecute correctamente el .gitlab-ci.yml.
+
+El resto del archivo no se explicara, ya que son comandos de Docker que permiten crear la correspondiente imagen y luego
+pushearla a la localizacion dada por IMAGE_TAG, veremos que se guarda ahi cuando estudiemos el Dockerfile
+
+------------------------------------------------------------------------------------------------------------------------------
+
+    
+Con lo recopilado en los pasos anteriores tenemos una nueva variable, 
 
 # 5) Drupal y PHP para la imagen de la instalacion
 
-# 6) Dockerfile y gitlab-ci para la instalacion de Drupal
+# 6) Dockerfile para la instalacion de Drupal
 
 # 7) Implementacion de CI/CD para el perfil de instalacion
 
