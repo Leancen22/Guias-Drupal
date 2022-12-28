@@ -134,6 +134,10 @@ de subir al repositorio, para un drupal normal, instalado como se indico mas arr
 
 ```
 
+Para el perfil de instalacion se pueden seguir los mismos pasos, el git init se realizaria dentro de la carpeta 
+/web/profiles/contrib/NOMBRE_DEL_PERFIL y se procederia como ya vimos, creando su repositorio respectivo y enlazandolo.
+El .gitignore ya dependera de la informacion del perfil.
+
 # 3) Runners
 
 # 4) Implementacion de CI/CD para la instalacion de Drupal
