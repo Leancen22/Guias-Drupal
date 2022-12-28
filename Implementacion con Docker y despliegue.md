@@ -493,7 +493,7 @@ Copia el resto de informacion del repositorio a la imagen.
 
 # 8) Implementar generacion de paquete composer
 
-# 9) Dockerfile y gitlab-ci para el perfil de instalacion
+# 9) Dockerfile para el perfil de instalacion
 
 # 10) Subir los cambios y generar las imagenes (perfil e instalacion)
 
