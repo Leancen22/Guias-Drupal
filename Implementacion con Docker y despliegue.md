@@ -93,7 +93,46 @@ No todo se debe subir al repositorio, Github por ejemplo avisa cuando credencial
 lo hace, por lo que tenemos que proibir la subida de esta informacion, ademas de esto, tampoco deben subirse archivos o carpetas que
 sean generadas por drupal automaticamente, por ejemplo modulos, el core, etc.
 
-Para esto se crea una archivo **.gitignore**
+Tambien en caso de querer desarrollar en un perfil aparte, no se debe subir junto con la instalacion.
+
+Para todo esto se crea una archivo **.gitignore** en la raiz del proyecto, que como su nombre indica, git ignorara todo lo que haya en este archivo a la hora
+de subir al repositorio, para un drupal normal, instalado como se indico mas arriba podriamos usar el siguiente contenido:
+
+```
+   # Ignora directorios creados por composer
+   /drush/contrib/
+   /vendor/
+   /web/core/
+   /web/modules/contrib/
+   /web/themes/contrib/
+   /web/profiles/contrib/
+   /web/libraries/
+
+   # Ignora informacion sensible
+   #/web/sites/*/settings.php # Voy a probar con variables de entorno
+   /web/sites/*/settings.local.php
+
+   # Ignora los directorios donde Drupal guarda sus archivos
+   /web/sites/*/files/
+
+   # En caso de desarrollar con PHPStorm
+   /.idea/
+   .DS_Store
+
+   # Ignora variables de entorno y archivos de configuracion de ddev
+   /.ddev
+   /.env
+   /.editorconfig
+   /.gitattributes
+   /local_data/
+
+   #Ignora configuracion SSH de gitlab (aqui se guarda el personal access token)
+   auth.json
+
+   #En caso de tener backups de base de datos
+   backups
+
+```
 
 # 3) Runners
 
