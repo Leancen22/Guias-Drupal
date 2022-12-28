@@ -19,6 +19,8 @@ runners, drush, composer y ddev (este último para desarrollo).
 Este desarrollo se hara utilizando la plataforma GitLab, la cual tiene sus diferencias con Github a la hora de trabajar
 con CI/CD.
 
+Esta guia se hara para Drupal 9 y PHP 8.x
+
 En caso de estar trabajando con Portal Express o derivados puede consultar directamente la guia correspondiente a Docker para portal express.
 
 #  Paso a paso
@@ -398,14 +400,94 @@ el tag y se ejecute correctamente el .gitlab-ci.yml.
 El resto del archivo no se explicara, ya que son comandos de Docker que permiten crear la correspondiente imagen y luego
 pushearla a la localizacion dada por IMAGE_TAG, veremos que se guarda ahi cuando estudiemos el Dockerfile
 
-------------------------------------------------------------------------------------------------------------------------------
+# 5) Dockerfile para la instalacion de Drupal
 
+Ahora veremos el archivo Dockerfile, el cual es la informacion que se guardara en la imagen, son las instrucciones que Docker
+ejecutara cuando este ejecutando el comando Docker build.
+
+Crearemos un archivo llamado **Dockerfile** en la raiz de nuestro proyecto, hasta el momento deberia versenos asi:
+
+```
+     - .ddev
+     - web
+     - composer.json
+     - composer.lock
+     - vendor
+     - .gitlab-ci.yml
+     - .gitignore
+     - Dockerfile
+     - build-image.sh (Este en la carpeta que indica el .gitlab-ci.yml o se puede cambiar la direccion del script)
+```
+
+El archivo Dockerfile contendra lo siguiente:
+
+```
+   FROM gitlab.isaltda.com.uy:5005/portal/infra-express/drupal-php8:v1.14
+
+   ARG GITLAB_TOKEN
+   ARG GITLAB_DOMAIN
+
+   COPY composer.*json ./
+   COPY composer.*lock ./
+
+   RUN apk update php-ldap
+
+   RUN git config --global http.sslverify false && \
+       composer config --global gitlab-domains ${GITLAB_DOMAIN} && \
+       composer config --global gitlab-token.${GITLAB_DOMAIN} ${GITLAB_TOKEN} && \
+       composer update && \
+       composer global require drush/drush -W && \ 
+       sed -e 's/;extension=ldap/extension=ldap/' -i /etc/php81/php.ini
+
+   COPY . ./
+```
+
+Este es el archivo **mas importante** ya que en el se guarda la imagen del drupal que se desplegara, por lo
+que es importante agregar todo lo necesario para su funcionamiento.
+
+Veamos linea por linea como veniamos haciendo:
+
+    FROM gitlab.isaltda.com.uy:5005/portal/infra-express/drupal-php8:v1.14
     
-Con lo recopilado en los pasos anteriores tenemos una nueva variable, 
+Esto lo analizaremos mas en profundidad en el proximo paso, pero esta es la direccion de donde se obtiene
+la base de drupal para la instalacion, es un drupal 9 vacio con php 8.1, es totalmente necesario ya que sobre esta instalacion vacia
+instalaremos todos los modulos y dependencias que desarrollamos y posteriormente el perfil de instalacion si lo tenemos.
 
-# 5) Drupal y PHP para la imagen de la instalacion
+```
+   ARG GITLAB_TOKEN
+   ARG GITLAB_DOMAIN
+```
 
-# 6) Dockerfile para la instalacion de Drupal
+Se solicitan variables globales a GitLab para poder ejecutar comandos especiales.
+
+```
+   COPY composer.*json ./
+   COPY composer.*lock ./
+```
+
+Estas dos lineas copian el composer.json y composer.lock de nuestra instalacion a la imagen que se creara, 
+El archivo Dockerfile fue creado en la raiz, por lo que para especificar a donde mandarlo basta con ./
+Copiando esto tenemos las dependencias que se deberan instalar en el despliegue.
+
+```
+    RUN git config --global http.sslverify false && \
+       composer config --global gitlab-domains ${GITLAB_DOMAIN} && \
+       composer config --global gitlab-token.${GITLAB_DOMAIN} ${GITLAB_TOKEN} && \
+       composer update && \
+       composer global require drush/drush -W && \ 
+       sed -e 's/;extension=ldap/extension=ldap/' -i /etc/php81/php.ini
+```
+
+Esto variara dependiendo las necesidades del proyecto, pero nos podemos quedar con dos lineas en particular,
+"composer update" y "composer global require drush/drush -W", esto ejecutara el composer.json que se copio previamente y
+se instalara el drush. Es recomendable tambien colocar los tres primeros comandos, que configuran el composer
+y desactivan la proteccion ssl para evitar problemas en el proceso, pero puede no ser necesario.
+
+    COPY . ./
+    
+Copia el resto de informacion del repositorio a la imagen.
+
+# 6) Drupal y PHP para la imagen de la instalacion
 
 # 7) Implementacion de CI/CD para el perfil de instalacion
 
