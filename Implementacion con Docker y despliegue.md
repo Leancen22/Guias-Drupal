@@ -180,6 +180,60 @@ generar la imagen.
     stages:
       - build-image
 ```
+Los stages corresponden a los pasos que seguira el archivo a la hora de ser leido, es el orden de las 
+instrucciones, supongamos tenemos lo siguiente:
+
+```
+    stages:
+      - Paso 1
+      - Paso 2
+      - Paso 3
+```
+Entonces, los scripts se ejecutaran en el orden que se vayan llamando, por ejemplo:
+
+```
+    stages:
+      - Paso-1
+      - Paso-2
+      - Paso-3
+    
+    esto-corresponde-al-paso-1:
+      image: docker:20-git
+      services:
+        - docker:20-dind
+      stage: Paso-1
+      script:
+        - echo "Esta es la ejecucion del paso 1"
+      tags:
+        - runner_ejemplo
+        
+    esto-corresponde-al-paso-3:
+      image: docker:20-git
+      services:
+        - docker:20-dind
+      stage: Paso-3
+      script:
+        - echo "Esta es la ejecucion del paso 3, no estamos ejecutando el paso 2"
+      tags:
+        - runner_ejemplo
+```
+
+Se pueden ejecutar en ordenes comandos para poder en diferentes etapas por ejemplo, instalar requerimientos, luego
+sobre lo anterior instalar modulos, etc.
+Supongamos el ejemplo anterior, donde tenemos tags asociados al runner runner_ejemplo (runner que responde a esa etiqueta),
+si subimos este archivo al repositorio podremos ver que se procesaran estas instrucciones por consola (https://gitlab.EXTENSION.com.uy/NOMBRE_GRUPO/NOMBRE_PROYECTO/-/jobs/ID_DEL_TRABAJO) los echo correspondientes a cada stage.
+
+------------------------------------------------------------------------------------------------------------------------------
+
+```
+   variables:
+         GIT_SUBMODULE_STRATEGY: none
+```
+
+En este caso no tenemos configurado un archivo **.gitmodules** para poder incluir subrepositorios a nuestro repositorio,
+por lo que colocamos esta variable como none.
+
+------------------------------------------------------------------------------------------------------------------------------
 
 
 # 5) Drupal y PHP para la imagen de la instalacion
