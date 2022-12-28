@@ -46,11 +46,15 @@ Empezaremos configurando nuestro entorno de trabajo
      
 Con esto ya tendremos una instalacion de Drupal lista para usar, tendremos la siguiente estructura de carpetas:
 
-     - .ddev
-     - web
-     - composer.json
-     - composer.lock
-     - vendor
+     - .ddev (carpeta de configuracion de ddev)
+     - web (carpeta donde se encuentra nuestro drupal (core))
+     - composer.json (archivo de configuracion de modulos y versiones)
+     - composer.lock (archivo de requerimientos para los modulos y configuraciones del .json)
+     - vendor (carpeta necesaria para el funcionamiento de drupal con drush)
+     
+En caso de usar un perfil de instalacion este se alojara en /web/profiles/contrib/NOMBRE_DEL_PERFIL
+
+Se puede consultar la documentacion de este mismo repositorio donde se explica como crear un perfil de instalacion o distribucion.
     
 # 2) Repositorios de trabajo
 
