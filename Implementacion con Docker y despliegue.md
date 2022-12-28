@@ -23,6 +23,7 @@ En caso de estar trabajando con Portal Express o derivados puede consultar direc
 
 #  Paso a paso
 # 1) Estructura del proyecto
+
  Vamos primero a conocer la estructura del proyecto en el que implementaremos Docker, para este proyecto como se menciono
  se utilizara un perfil de instalacion donde se desarrollara, en caso de no contar con un perfil de instalacion para el
  desarrollo y desarrollar sobre la misma instalacion de drupal, puede ignorar los pasos relacionados al perfil.
@@ -58,8 +59,11 @@ Se puede consultar la documentacion de este mismo repositorio donde se explica c
     
 # 2) Repositorios de trabajo
 
+Para este desarrollo es importante que a la hora de crear el repositorio este sea publico y tengamos configurada
+la posibilidad de implementar runners.
+
 Para trabajar usaremos GitLab, donde crearemos un repositorio con el nombre que queramos para alojar el projecto,
-una vez creado se nos mostraran varias maneras de enlazar el repositorio creado con nuestro proyecto, vamos a usar una de estas maneras:
+una vez creado se nos mostraran varias maneras de enlazar el repositorio creado con nuestro proyecto, vamos a usar una de estas maneras.
 
 En la carpeta que creamos anteriormente (ProjectoConDocker) usaremos el siguiente comando:
    
@@ -142,6 +146,42 @@ El .gitignore ya dependera de la informacion del perfil.
 
 # 4) Implementacion de CI/CD para la instalacion de Drupal
 
+Vamos a implementar CI/CD, lo que corresponde a integracion y desarrollo continuo.
+Por defecto, el archivo que GitLab detecta para CI/CD es el archivo **.gitlab-ci.yml**, podemos ver la configuracion
+de CI/CD de un proyecto en https://gitlab.EXTENSION.com.uy/NOMBRE_GRUPO/NOMBRE_PROYECTO/-/settings/ci_cd y modificar a nuestro gusto,
+ahi tambien se encuentra la configuracion de runners y variables de entorno.
+
+Veamos la configuracion del archivo .gitlab-ci.yml para la instalacion de Drupal.
+
+```
+    stages:
+      - build-image
+      
+    variables:
+      GIT_SUBMODULE_STRATEGY: none
+
+    docker-image:
+      image: docker:20-git
+      services:
+        - docker:20-dind
+      stage: build-image
+      script:
+        - ./.gitlab/build-image.sh
+      only:
+        - /^[0-9]+\.[0-9]+\.[0-9]+$/
+      tags:
+        - docker2
+```
+
+Vamos a ir explicando cada linea y luego veremos el contenido de ./.gitlab/build-image.sh que es el encargado de 
+generar la imagen.
+
+```
+    stages:
+      - build-image
+```
+
+
 # 5) Drupal y PHP para la imagen de la instalacion
 
 # 6) Dockerfile y gitlab-ci para la instalacion de Drupal
@@ -158,13 +198,15 @@ El .gitignore ya dependera de la informacion del perfil.
 
 -------------------------------------------------------------------------------------------------------------
 
+# Posibles errores
+
 # Pasos previos necesarios para el despliegue
 El despliegue de la imagen que generamos con los pasos anteriores requiere tener previamente en donde
 se vaya a instalar algunos preparativos, pasaremos a ver la configuracion necesaria.
+...
     
 # Desarrollo y escalabilidad
 En caso de tener el perfil, el desarrollo se hara sobre ese repositorio en concreto, y posteriormente
 se actualizara el composer de la instalacion para generar la imagen actualizada, vamos a repasar esto y
 la metodologia a seguir a la hora de querer escalar a otros proyectos.
-
-Desde el lado del servidor es necesario tirar composer update, esto actualizara el paquete...
+...
