@@ -93,7 +93,7 @@ No todo se debe subir al repositorio, Github por ejemplo avisa cuando credencial
 lo hace, por lo que tenemos que proibir la subida de esta informacion, ademas de esto, tampoco deben subirse archivos o carpetas que
 sean generadas por drupal automaticamente, por ejemplo modulos, el core, etc.
 
-Para esto se crea una archivo *.gitignore*
+Para esto se crea una archivo **.gitignore**
 
 # 3) Runners
 
