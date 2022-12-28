@@ -89,6 +89,11 @@ A partir de ahora podremos subir a este repositorio creado nuestros cambios:
     git push -u origin master
     
 _IMPORTANTE_
+No todo se debe subir al repositorio, Github por ejemplo avisa cuando credenciales o informacion sensible es subida, GitLab no
+lo hace, por lo que tenemos que proibir la subida de esta informacion, ademas de esto, tampoco deben subirse archivos o carpetas que
+sean generadas por drupal automaticamente, por ejemplo modulos, el core, etc.
+
+Para esto se crea una archivo *.gitignore*
 
 # 3) Runners
 
