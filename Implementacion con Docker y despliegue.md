@@ -800,7 +800,15 @@ Leer primero el apartado de "pasos previos necesarios para el despliegue".
 # Pasos previos necesarios para el despliegue
 El despliegue de la imagen que generamos con los pasos anteriores requiere tener previamente en donde
 se vaya a instalar algunos preparativos, pasaremos a ver la configuracion necesaria.
-...
+
+Necesitamos tener un drupal con un composer.json con los siguientes modulos, como minimo:
+     
+     drush (modulo para el manejo del cache, bases de datos, otros modulos entre otros)
+     drupal_console (modulo necesario para poder ejecutar comandos relacionados con drupal, modulos y temas)
+
+Estos requerimientos se suplen instalando en el servidor la imagen del drupal generico que se usa para contruir nuestra imagen
+con nustras configuraciones y modulos.
+Simplemente basta desplegar esta imagen de drupal generico en el servidor y "pasar" por encima con nuestra imagen.
     
 # Desarrollo y escalabilidad
 En caso de tener el perfil, el desarrollo se hara sobre ese repositorio en concreto, y posteriormente
