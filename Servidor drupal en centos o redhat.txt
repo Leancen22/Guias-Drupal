@@ -1,0 +1,99 @@
+INSTALACIONES NECESARIAS EN CENTOS 8 (TAMBIEN SIRVEN PARA REDHAT)
+
+sudo yum update
+sudo yum install mysql-server
+sudo systemctl start mysqld
+
+sudo yum install httpd
+sudo systemctl start httpd
+
+sudo dnf install -y https://rpms.remirepo.net/enterprise/remi-release-8.rpm
+sudo dnf module enable -y php:remi-8.0
+sudo dnf update
+sudo dnf install -y php php-cli php-common php-devel php-mysqlnd php-pdo php-gd php-xml php-mbstring
+
+sudo yum install openssh-server
+
+//Direccion IP de la maquina
+ip addr show
+
+//Pasar archivos de la maquina host a la virtual
+scp -r 'C:\Users\Leandro Mesa\Desktop\test.txt' root@192.168.29.128:/
+
+unzip nombre_del_archivo.zip -d ruta_de_destino
+
+//Apache en maquina host
+http://IP_MAQUINA_VIRTUAL/Ruta
+
+//Si no responde apache en maquina host
+sudo firewall-cmd --add-service=http --permanent
+sudo firewall-cmd --reload
+
+
+//Crear .conf para levantar el sitio con apache
+sudo nano /etc/httpd/conf.d/nombre_del_sitio.conf
+
+<VirtualHost *:80>
+  ServerName nombre_del_sitio
+  DocumentRoot /ruta/de/destino
+  <Directory /ruta/de/destino>
+    Options Indexes FollowSymLinks
+    AllowOverride All
+    Require all granted
+  </Directory>
+</VirtualHost>
+
+"nombre_del_sitio" con el nombre de tu sitio y "/ruta/de/destino" con la ruta completa del directorio donde has descomprimido los archivos de Drupal.
+
+sudo systemctl restart httpd
+http://192.168.29.128/nombre_del_sitio
+
+
+//Restablecer php 
+sudo dnf upgrade --refresh
+sudo dnf module reset php:remi-8.0
+sudo dnf module enable php:remi-8.1 -y
+sudo dnf install -y php php-cli php-common php-devel php-mysqlnd php-pdo php-gd php-xml php-mbstring
+
+
+//BASE DE DATOS
+//generar pass
+sudo mysql_secure_installation
+mysql -u root -p
+CREATE DATABASE nombre_de_la_base_de_datos;
+
+//3 CAMINOS
+*//Desde interfaz grafica
+//Desde settings.php
+//Desde drush
+
+* En este caso es necesario (en realidad para todos) inyectar la db en la tabla creada.
+mysql -u NOMBRE_USUARIO_DB -p NOMBRE_TABLA_DB < /ruta/al/archivo/db.sql
+
+
+//COMPOSER
+curl -sS https://getcomposer.org/installer -o composer-setup.php
+HASH="$(curl -sS https://composer.github.io/installer.sig)"
+php -r "if (hash_file('SHA384', 'composer-setup.php') === '$HASH') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+
+sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+
+
+//DRUPAL (PORTAL EXPRESS)
+rm -r vendor composer.lock
+composer install
+
+modificar como sea necesario el settings.php para conectar la base de datos.
+
+chmod -R 777 files //lo correcto es 755
+
+//En este punto es probable que la instalacion llegue a no detectar la carpeta sites incluso con los permisos, en caso de que esto ocurra y se
+haya probado tambien cambiar el owner de la carpeta a apache, intentar lo siguiente.
+
+EDITAR EL ARCHIVO UBICADO EN /etc/sysconfig/selinux
+Cambiar la opcion SELINUX a SELINUX=disabled;
+
+REINICIAR MAQUINA VIRTUAL Y POSTERIOR VER SU ESTADO: sestatus
+
+
+
