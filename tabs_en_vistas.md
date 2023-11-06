@@ -13,7 +13,7 @@ Archivo container--view--VIEW_ID--block-1.html.twig
     {{ title_prefix }}
         <h2 class="section__title fadeInUp"> {{ element['#title']['#markup'] }} </h2>
     {{ title_suffix }}
-    <p class="section__undertitle fadeInUp"> Escuchamos a nuestros clientes y trabajamos mano a mano para lograr soluciones que se ajusten a sus necesidades. </p>
+    <p class="section__undertitle fadeInUp"> {{element.view_build['#header'].area_text_custom['#markup']}} </p>
 
     <div class="tabs">
         {{ children }}
