@@ -75,7 +75,7 @@ Archivo views-view--VIEW_ID.html.twig
             <div class="tab-slider">
                 <div class="tab-inputs fadeInUp">
         {% for item in rows %}
-            <input type="radio" class="tab-input" name="tab" id="tab{{ loop.index }}" checked>
+            <input type="radio" class="tab-input" name="tab" id="tab{{ loop.index }}" {% if loop.first %}checked{% endif %}>
             <label for="tab{{ loop.index }}" class="label-tab"> <span> {{item['#title']}} </span> </label>      
         {% endfor %}
                 </div>
@@ -84,7 +84,7 @@ Archivo views-view--VIEW_ID.html.twig
         <div class="tab-body">
             {# {{dump(rows.0['#rows'].0['#row']._entity)}} #}
             {% for value in rows %}
-                <div class="tab-content" data-tab="tab{{ loop.index }}">
+                <div class="tab-content" data-tab="tab{{ loop.index }}" {% if loop.first %}style="display: block;"{% endif %} >
                 {% for valor in value['#rows'] %}
                     {{valor}}
                 {% endfor %}
@@ -130,3 +130,47 @@ Archivo views-view-unformatted--VIEW_ID.html.twig
     {{- row.content -}}
 {% endfor %}
 ```
+
+La vista debe tener el campo enlace reescrito de la siguiente forma: {{ field_link }}|{{ field_link__title }}
+
+Archivo views-view-fields--VIEW_ID.html.twig
+```
+{% set enlace = fields.field_link.content|split(',') %}
+
+{% set image = fields.field_image.content|trim|striptags %}
+{% set title = fields.field_titulo.content %}
+{# 
+{{dump(enlace_link)}}
+
+{{dump(fields)}} #}
+<div class="component-txt-img component-txt-imgLeft">
+  <div class="page-container">
+
+    <div class="content-txt-img">
+      
+      <div class="text-area">
+        <h3 class="title-area fadeInUp"> {{title}} </h3>
+        <div class="text-description fadeInUp"> 
+          {{fields.body.content}}
+        </div>
+
+        {% for items in enlace %}
+            {% set valores = items|split('|') %}
+            <div class="details-area fadeInUp">
+                <a href="{{valores.0|striptags|trim}}" class="btn-small btn-secondary btn-icon"> {{valores.1|striptags|trim}} <span class="material-icons-outlined"> arrow_right_alt </span> </a>
+            </div>
+        {% endfor %}
+
+      </div>
+
+      <div class="img-area fadeInUp">
+        <img src="{{image}}" class="img-fluid" alt="Image descripcion">
+      </div>
+
+    </div>
+
+  </div>
+  {{ fields.content|render|striptags }}
+</div>
+```
+
