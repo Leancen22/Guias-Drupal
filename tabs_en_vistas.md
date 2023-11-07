@@ -174,7 +174,7 @@ Archivo views-view-fields--VIEW_ID.html.twig
 </div>
 ```
 
-OTRA FORMA USANDO EN LUGAR DE CAMPOS EN LA VISTA, LA ENTIDAD BLOQUE COMPLETA:
+# OTRA FORMA USANDO EN LUGAR DE CAMPOS EN LA VISTA, LA ENTIDAD BLOQUE COMPLETA:
 
 Archivo views-view--VIEW_ID.html.twig
 ```
@@ -289,3 +289,5 @@ Archivo views-view--VIEW_ID.html.twig
   {% endif %}
 </div>
 ```
+
+En este caso no seria necesario el Archivo views-view-fields--VIEW_ID.html.twig
