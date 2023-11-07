@@ -174,3 +174,118 @@ Archivo views-view-fields--VIEW_ID.html.twig
 </div>
 ```
 
+OTRA FORMA USANDO EN LUGAR DE CAMPOS EN LA VISTA, LA ENTIDAD BLOQUE COMPLETA:
+
+Archivo views-view--VIEW_ID.html.twig
+```
+{%
+  set classes = [
+    'view',
+    'view-' ~ id|clean_class,
+    'view-id-' ~ id,
+    'view-display-id-' ~ display_id,
+    dom_id ? 'js-view-dom-id-' ~ dom_id,
+  ]
+%}
+
+<div{{ attributes.addClass(classes) }}>
+  {{ title_prefix }}
+  {% if title %}
+    {{ title }}
+  {% endif %}
+  {{ title_suffix }}
+  {# {% if header %}
+    <div class="view-header">
+      {{ header }}
+    </div>
+  {% endif %} #}
+  {% if exposed %}
+    <div class="page-container">
+      {{ exposed }}
+    </div>
+  {% endif %}
+  {% if attachment_before %}
+    <div class="attachment attachment-before">
+      {{ attachment_before }}
+    </div>
+  {% endif %}
+  {% if rows %}
+        <div class="tab-header">
+            <div class="tab-slider">
+                <div class="tab-inputs fadeInUp">
+        {% for item in rows %}
+            <input type="radio" class="tab-input" name="tab" id="tab{{ loop.index }}" {% if loop.first %}checked{% endif %}>
+            <label for="tab{{ loop.index }}" class="label-tab"> 
+              <span> 
+              {% for row in item['#rows'] %}
+                {{ row.field_title.0['#context'].value }}
+              {% endfor %} 
+              </span> 
+            </label> 
+        {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="tab-body">
+            
+            {# {{dump(rows.0['#rows'].0['#row']._entity)}} #}
+            {% for value in rows %}
+                <div class="tab-content" data-tab="tab{{ loop.index }}" {% if loop.first %}style="display: block;"{% endif %} >
+                {% for valor in value['#rows'] %}
+                      {{dump(valor)}}
+                      <div class="component-txt-img component-txt-imgLeft">
+                        <div class="page-container">
+
+                          <div class="content-txt-img">
+                            
+                            <div class="text-area">
+                              <h3 class="title-area fadeInUp"> {{valor.field_titulo.0['#context'].value}} </h3>
+                              <div class="text-description fadeInUp"> 
+                                {{valor.body}}
+                              </div>
+
+                              {{valor.field_solucion}}
+                              
+                            </div>
+
+                            <div class="img-area fadeInUp">
+                              <img src="{{valor.field_image.0['#markup']}}" class="img-fluid" alt="Image descripcion">
+                            </div>
+
+                          </div>
+
+                        </div>
+                      </div>
+                {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+  {% elseif empty %}
+    <div class="view-empty">
+      {{ empty }}
+    </div>
+  {% endif %}
+
+  {% if pager %}
+    {{ pager }}
+  {% endif %}
+  {% if attachment_after %}
+    <div class="attachment attachment-after">
+      {{ attachment_after }}
+    </div>
+  {% endif %}
+  {% if more %}
+    {{ more }}
+  {% endif %}
+  {% if footer %}
+    <div class="view-footer">
+      {{ footer }}
+    </div>
+  {% endif %}
+  {% if feed_icons %}
+    <div class="feed-icons">
+      {{ feed_icons }}
+    </div>
+  {% endif %}
+</div>
+```
