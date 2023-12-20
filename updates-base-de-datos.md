@@ -20,7 +20,11 @@ En ese momento se puede devolver el estado del HOOK_update a 9000
 
     Para saber en que version vamos se puede utilizar el siguiente comando:
 
+        PARA DRUPAL 8/9
         drush php-eval "echo drupal_get_installed_schema_version('NAME');"
+
+        PARA DRUPAL 9.3/10+
+        drush php-eval "echo \Drupal::service('update.update_hook_registry')->getInstalledVersion('NAME');"
         
     Para restablecer el update a 9000:
     
