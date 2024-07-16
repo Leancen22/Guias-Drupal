@@ -59,9 +59,8 @@ el visualizador de plantillas, siguiendo los pasos siguientes:
     
 ```json
         <?php
-	#assert_options(ASSERT_ACTIVE, TRUE); Deprecated in 10.1
-	assert_options(ASSERT_EXCEPTION, TRUE)
-	\Drupal\Component\Assertion\Handle::register();
+	#assert_options(ASSERT_ACTIVE, TRUE); Deprecated in 10.1, use instead assert_options(ASSERT_EXCEPTION, TRUE)
+	#\Drupal\Component\Assertion\Handle::register(); Deprecated in 10.1
 	$settings['container_yamls'][] = DRUPAL_ROOT . '/sites/development.services.yml';
 	$config['system.logging']['error_level'] = 'verbose';
 	$config['system.performance']['css']['preprocess'] = FALSE;
