@@ -1,0 +1,99 @@
+composer create-project drupal/recommended-project:10.0.0 drupal10-mssql
+
+composer require drupal/sqlsrv
+
+composer require drush/drush
+
+curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+
+sudo add-apt-repository "$(curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list)"
+
+sudo apt update
+
+systemctl status apache2
+
+systemctl restart apache2
+
+//por problemas de puertos:
+sudo nano /etc/apache2/ports.conf
+
+sudo apache2ctl configtest
+
+//debe ser 8.1+
+php -v 
+
+//sino
+sudo a2dismod php7.4
+sudo a2enmod php8.2
+sudo systemctl restart apache2
+
+definir en /web del proyecto:
+<?php
+phpinfo();
+
+ingresar en localhost tras armar el conf:
+<VirtualHost *:5000>
+    ServerName drupal10.local
+    DocumentRoot /home/leandro/Documents/projects/drupal10-mssql/web
+    <Directory /home/leandro/Documents/projects/drupal10-mssql/web >
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+
+sudo apt install unixodbc-dev -y
+sudo apt install php-pear php8.2-dev build-essential -y
+
+sudo pecl install sqlsrv
+sudo pecl install pdo_sqlsrv
+
+//validar:
+php -m | grep -E "pdo|sqlsrv"
+
+si no muestra los servicios:
+validar instalacion:
+php -i | grep extension_dir
+
+ejemplo de salida: extension_dir => /usr/lib/php/20220829 => /usr/lib/php/20220829
+
+validar que se encuentren ahi los servicios: ls /usr/lib/php/20220829 | grep sqlsrv
+
+validar archivo que se esta cargando: php -i | grep "Loaded Configuration File"
+
+dentro del archivo que se carga al final colocar: 
+extension=pdo.so
+extension=sqlsrv.so
+extension=pdo_sqlsrv.so
+
+ES IMPORTANTE QUE pdo.so SE CARGUE ANTES QUE sqlsrv.so
+
+sudo systemctl restart apache2 
+validar nuevamente: php -m | grep -E "pdo|sqlsrv"
+
+sudo ACCEPT_EULA=Y apt install -y msodbcsql17
+confirmar insalacion del ODBC: odbcinst -q -d
+
+en el settings.php de drupal: 
+$databases['default']['default'] = array (
+  'database' => 'DB_NAME',
+  'username' => 'DB_USER',
+  'password' => 'DB_PASSS',
+  'prefix' => '',
+  'host' => 'HOST',
+  'port' => 'PORT',
+  'schema' => 'dbo',
+  'cache_schema' => 0,
+  'autoload' => 'modules/contrib/sqlsrv/src/Driver/Database/sqlsrv/',
+  'encrypt' => '0',
+  'trust_server_certificate' => 1,
+  'multi_subnet_failover' => 0,
+  'namespace' => 'Drupal\\sqlsrv\\Driver\\Database\\sqlsrv',
+  'driver' => 'sqlsrv',
+);
+
+Asegurarse que 'encrypt' => '0', este en 0 y 'trust_server_certificate' => 1, en 1 por defecto estan al reves.
+
+
